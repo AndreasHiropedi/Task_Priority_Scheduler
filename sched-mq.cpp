@@ -108,7 +108,7 @@ public:
         // block interrupts
         UniqueIRQLock l;
         // get first entity in the queue
-        SchedulingEntity *next_entity = queue.dequeue();
+        SchedulingEntity* next_entity = queue.dequeue();
         // if it is still active, add it to the end of the queue
         queue.enqueue(next_entity);
 		return next_entity;
@@ -164,11 +164,8 @@ public:
     
 private:
 	List<SchedulingEntity*> realtime_runqueue;
-private:
 	List<SchedulingEntity*> interactive_runqueue;
-private:
 	List<SchedulingEntity*> normal_runqueue;
-private:
 	List<SchedulingEntity*> daemon_runqueue;
 };
 

@@ -1,8 +1,8 @@
 /*
- * The Priority Task Scheduler Advanced Task
+ * The Priority Task Scheduler
+ * SKELETON IMPLEMENTATION TO BE FILLED IN FOR TASK 1
  */
 
-#include <infos/kernel/sched.h>
 #include <infos/kernel/sched.h>
 #include <infos/kernel/thread.h>
 #include <infos/kernel/log.h>
@@ -15,7 +15,7 @@ using namespace infos::util;
 /**
  * A Multiple Queue priority scheduling algorithm
  */
-class AdvancedScheduler : public SchedulingAlgorithm
+class Advancedcheduler : public SchedulingAlgorithm
 {
 public:
     /**
@@ -99,14 +99,23 @@ public:
     }
 
     /**
-     * Helper function implementing the next entity selection algorithm.
-     * @param queue
-     */
-    SchedulingEntity *next_entity_selector(List<SchedulingEntity*>& queue)
+    * Helper function for generating a random number using the "middle square" method.
+    */
+    int number_randomiser() 
     {
-        // block interrupts
-        UniqueIRQLock l;
-        
+        int number = ((entities_counter * entities_counter) / 10) % 100;
+        return number;
+    }
+
+    /**
+    * Helper function for generating a random ticket number. Ensures the outputed random number
+    * is within the given range of 1 to 100.
+    */
+    int ticket_number_generator() 
+    {
+        int min = 1;
+        int max = 100;
+        return number_randomiser() % ( (1 + max - min) + 1);
     }
 
     /**
@@ -120,48 +129,131 @@ public:
         if (realtime_runqueue.count() == 0 && interactive_runqueue.count() == 0 
         && normal_runqueue.count() == 0 && daemon_runqueue.count() == 0) return NULL;
 
-        // if the REALTIME queue is not empty
-        // we first ensure it gets emptied before considering entities in other queues
-        else if (realtime_runqueue.count() > 0) 
+        // if there are entities to be scheduled, we use the Lottery Scheduling Algorithm
+        else 
         {
-            return next_entitys_selector(realtime_runqueue);
-        }
-
-        // if the REALTIME queue is empty
-        // we then ensure the INTERACTIVE queue is emptied (in case it is not empty already)
-        else if (realtime_runqueue.count() == 0 && interactive_runqueue.count() > 0) 
-        {
-            return next_entity_selector(interactive_runqueue);
-        }
-
-        // if the REALTIME and INTERACTIVE queues are empty
-        // we then ensure the NORMAL queue is emptied (in case it is not empty already)
-        else if (realtime_runqueue.count() == 0 && interactive_runqueue.count() == 0 
-        && normal_runqueue.count() > 0) 
-        {
-            return next_entity_selector(normal_runqueue);
-        }
-
-        // otherwise we ensure the DAEMON queue is emptied
-        else
-        {
-            return next_entity_selector(daemon_runqueue);
+            // create a pointer for the next entity to be scheduled
+            SchedulingEntity* next_entity = NULL;
+            // update the total number of entities scheduled
+            entities_counter++;
+            // generates a ticket number completely randomly
+            int ticket_number = ticket_number_generator();
+            // block interrupts
+            UniqueIRQLock l;
+            // based on the ticket number generated
+            if (ticket_number >= 1 && ticket_number <= 40)
+            {
+                // try the queues in different order
+                if (realtime_runqueue.count() > 0)
+                {
+                    next_entity = realtime_runqueue.dequeue();
+                    realtime_runqueue.enqueue(next_entity);
+                }
+                else if (interactive_runqueue.count() > 0)
+                {
+                    next_entity = interactive_runqueue.dequeue();
+                    interactive_runqueue.enqueue(next_entity);
+                }
+                else if (normal_runqueue.count() > 0)
+                {
+                    next_entity = normal_runqueue.dequeue();
+                    normal_runqueue.enqueue(next_entity);
+                }
+                else
+                {
+                    next_entity = daemon_runqueue.dequeue();
+                    daemon_runqueue.enqueue(next_entity);
+                }
+            }
+            // then check interactive queue first
+            else if (ticket_number >= 41 && ticket_number <= 70)
+            {
+                // try the queues in different order
+                if (interactive_runqueue.count() > 0)
+                {
+                    next_entity = interactive_runqueue.dequeue();
+                    interactive_runqueue.enqueue(next_entity);
+                }
+                else if (normal_runqueue.count() > 0) 
+                {
+                    next_entity = normal_runqueue.dequeue();
+                    normal_runqueue.enqueue(next_entity);
+                }
+                else if (daemon_runqueue.count() > 0) 
+                {
+                    next_entity = daemon_runqueue.dequeue();
+                    daemon_runqueue.enqueue(next_entity);
+                }
+                else 
+                {
+                    next_entity = realtime_runqueue.dequeue();
+                    realtime_runqueue.enqueue(next_entity);
+                }
+            }
+            // then normal queue first
+            else if (ticket_number >= 71 && ticket_number <= 90)
+            {
+                // try the queues in different order
+                if (normal_runqueue.count() > 0)
+                {
+                    next_entity = normal_runqueue.dequeue();
+                    normal_runqueue.enqueue(next_entity);
+                }
+                else if (daemon_runqueue.count() > 0) 
+                {
+                    next_entity = daemon_runqueue.dequeue();
+                    daemon_runqueue.enqueue(next_entity);
+                }
+                else if (realtime_runqueue.count() > 0)
+                {
+                    next_entity = realtime_runqueue.dequeue();
+                    realtime_runqueue.enqueue(next_entity);
+                }
+                else 
+                {
+                    next_entity = interactive_runqueue.dequeue();
+                    interactive_runqueue.enqueue(next_entity);
+                }
+            }
+            // lastly check daemon queue first
+            else 
+            {
+                // try the queues in different order
+                if (daemon_runqueue.count() > 0) 
+                {
+                    next_entity = daemon_runqueue.dequeue();
+                    daemon_runqueue.enqueue(next_entity);
+                }
+                else if (realtime_runqueue.count() > 0) 
+                {
+                    next_entity = realtime_runqueue.dequeue();
+                    realtime_runqueue.enqueue(next_entity);
+                }
+                else if (interactive_runqueue.count() > 0) 
+                {
+                    next_entity = interactive_runqueue.dequeue();
+                    interactive_runqueue.enqueue(next_entity);
+                }
+                else 
+                {
+                    next_entity = normal_runqueue.dequeue();
+                    normal_runqueue.enqueue(next_entity);
+                }
+            }
+            // and return the selected entity
+            return next_entity;
         }
     }
-
+// queues for each priority level   
 private:
 	List<SchedulingEntity*> realtime_runqueue;
-private:
 	List<SchedulingEntity*> interactive_runqueue;
-private:
 	List<SchedulingEntity*> normal_runqueue;
-private:
 	List<SchedulingEntity*> daemon_runqueue;
-
-// TODO: add a struct that keeps track of number of turns used
-
+    // keep track of all the entities scheduled so far
+    int entities_counter = 0;
 };
 
 /* --- DO NOT CHANGE ANYTHING BELOW THIS LINE --- */
 
-RegisterScheduler(AdvancedScheduler);
+RegisterScheduler(Advancedcheduler);
