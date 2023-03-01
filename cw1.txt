@@ -1,0 +1,32 @@
+﻿CW1 Text Part
+
+
+
+Problem: 
+
+One major drawback of the Multiple Priority Queue scheduling algorithm is the starvation problem [1]. The starvation problem refers to  some processes of lower priority may have to wait a long time before being scheduled. This occurs because a stream of high-priority tasks constantly prevents the low priority tasks from  having access to processor resources, such as CPU time [2]. In the case of our scheduler, this means that the tasks in the DAEMON runqueue are constantly postponed until all the higher priority queues (REALTIME, INTERACTIVE, NORMAL) are fully emptied.
+
+
+
+Solution: 
+
+One algorithm that helps mitigate the starvation problem is the Lottery schdeuling algorithm. The algorithm works by allocating a certain number of lottery tickets to each queue, and then drawing a random ticket to select the next process to be scheduled. The reason the algorithm addresses the problem of starvation is because it offers each queue enough tickets to have a non-zero probability of being selected at each scheduling operation [3].
+
+The implemented algorithm works in the following way: each time a task is scheduled, a random number is generated based on the current total number of entities that have been scheduled. The random number is generated using the middle square method [4], and is always between 1 and 100. Given this random number, we apply the following logic: if the number falls between 1 and 40, then an element from the REALTIME runqueue is selected; if the number falls between 41 and 70, then an element from the INTERACTIVE runqueue is selected; if the number falls between 71 and 90, then an element from the NORMAL runqueue is selected; otherwise (between 91 and 100) an element from the DAEMON runqueue is selected. 
+
+If the queue indicated by the ticket number does not have any elements, then the queues are scheduled in a Round-Robin manner. For instance, if a ticket number between 71 and 90 is generated and the NORMAL runqueue is empty, then the first queue checked afterwards is DAEMON, followed by REALTIME and then INTERACTIVE. Additionally, the elements inside each queue are also scheduled in a Round-Robin manner.
+
+A major drawback of this approach, however, is that it is very unpredictable. Due to the randomness involved, it is impossible to tell whether processes in the same queue will end up being scheduled several consecutive times, or whether processes across different queues will end up being scheduled.Additionally, the different "weights" attributed to the 4 different prority levels further increase the chances of this occurring. Therefore, despite the algorithm having been proven reliable and viable, the degree of unpredictability does constitute a problem that needs to be considered [5].
+
+A solution to the problem of the lottery scheduling algorithm would be to use a Multilevel Feedback Queue algorithm. This algorithm is an extension of the Multiple Priority Queue scheduling algorithm, with the addition of allowing processes that have waited for a significant amount of time to be moved up in terms of priority, and processes that have used up significant processor resources to be moved down in terms of priority. This also addresses the starvation problem; however, the downside of this approach is the complexity of the algorithm itself [6].
+
+
+References 
+
+[1] https://www.prepbytes.com/blog/queues/multilevel-queue-mlq-cpu-scheduling/
+[2] https://www.scaler.com/topics/starvation-in-os-operating-system/
+[3] https://en.wikipedia.org/wiki/Lottery_scheduling
+[4] https://en.wikipedia.org/wiki/Middle-square_method
+[5] https://intro2operatingsystems.wordpress.com/tag/lottery-scheduling/
+[6] https://www.geeksforgeeks.org/multilevel-feedback-queue-scheduling-mlfq-cpu-scheduling/
+
