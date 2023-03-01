@@ -1,3 +1,0 @@
-﻿Problem: starvation of CPU time for low level processes
-
-Solution: count the number of turns a task has had for using CPU time, and alter the queues accordingly
